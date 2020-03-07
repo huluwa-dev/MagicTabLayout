@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MagicTabLayout">
+        <attr name="bgColor" format="color" />
+        <attr name="selectDrawable" format="reference" />
+        <attr name="normalTextColor" format="color" />
+        <attr name="selectTextColor" format="color" />
+    </declare-styleable>
+</resources>

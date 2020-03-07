@@ -1,0 +1,3 @@
+rootProject.name='MagicTabLayout'
+include ':sample'
+include ':library'
