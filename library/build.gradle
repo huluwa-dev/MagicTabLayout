@@ -2,6 +2,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+apply plugin: 'com.novoda.bintray-release'
+
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
@@ -10,7 +12,7 @@ android {
         minSdkVersion 18
         targetSdkVersion 29
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
@@ -33,4 +35,13 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+}
+
+publish {
+    userOrg = 'huluwa'             // Binary用户名
+    repoName = 'MagicTabLayout'          // Binary上的刚才新建的仓库名（Repository）
+    groupId = 'com.huluwa.lib.magictablayout'        // 依赖名compile 'x:y:z'中的包名x
+    artifactId = 'MagicTabLayout'        // 依赖名compile 'x:y:z'中的项目名y
+    publishVersion = '1.0.0'          // 依赖名compile 'x:y:z'中的版本号z
+    desc = 'This is a magic TabLayout'
 }
