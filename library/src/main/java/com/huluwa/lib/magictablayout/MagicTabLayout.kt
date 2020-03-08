@@ -40,21 +40,21 @@ class MagicTabLayout @JvmOverloads constructor(
     private var selectBitmap: Bitmap? = null
     private var roundedBitmap: Bitmap? = null
 
-    // 标题
+    // titles
     private val titles = arrayListOf<Title>()
     private var selectedIndex = 0
-    private var normalTitleWidth = 0f // 未选中标题所占宽度
-    private var selectTitleWidth = 0f // 选中标题所占宽度
-    private var bgHeight = 0f // 背景非透明部分的高度
-    private var lineLength = 0f // 凹槽横线部分的长度
+    private var normalTitleWidth = 0f // unselected item width
+    private var selectTitleWidth = 0f // selected item width
+    private var bgHeight = 0f // background height
+    private var lineLength = 0f // line length of selected item
 
-    // 动画
+    // Animation
     private var xOffsetAnimator: ValueAnimator? = null
 
-    // 触摸
+    // Touch
     private var detector: GestureDetectorCompat? = null
 
-    // 回调
+    // callback
     var onSelectChangeListener: ((index: Int) -> Unit)? = null
 
     init {
@@ -71,7 +71,7 @@ class MagicTabLayout @JvmOverloads constructor(
     }
 
     /**
-     * 选中指定index
+     * select expected index
      */
     fun select(index: Int) {
         if (index > titles.size - 1 || index == selectedIndex) return
@@ -133,11 +133,11 @@ class MagicTabLayout @JvmOverloads constructor(
                 Canvas.ALL_SAVE_FLAG
             )
         }
-        //绘制背景
+        // draw background
         paint.color = bgColor
         canvas.drawRect(0f, 0f, canvasWidth.toFloat(), bgHeight, paint)
         if (titles.size == 0) return
-        // 绘制剪切区域
+        // draw holo part
         paint.xfermode = porterDuffXfermode
 
         calculateHolePath(canvasHeight.toFloat(), bgHeight, lineLength)
@@ -152,7 +152,7 @@ class MagicTabLayout @JvmOverloads constructor(
     }
 
     /**
-     * 挖空区域的path
+     * calculate the path of the holo part
      */
     private fun calculateHolePath(canvasHeight: Float, pathHeight: Float, lineLength: Float) {
         targetPath.reset()
@@ -185,7 +185,7 @@ class MagicTabLayout @JvmOverloads constructor(
         targetPath.close()
     }
 
-    // 绘制选中区域的图片
+    // draw image of the selected part
     private fun drawSelected(canvas: Canvas, pathHeight: Int, outWidth: Int, outHeight: Int) {
         selectBitmap?.let {
             val margin = 2.dp
@@ -214,18 +214,7 @@ class MagicTabLayout @JvmOverloads constructor(
     }
 
     /**
-     * 利用BitmapShader绘制圆角图片
-     *
-     * @param bitmap
-     * 待处理图片
-     * @param outWidth
-     * 结果图片宽度，一般为控件的宽度
-     * @param outHeight
-     * 结果图片高度，一般为控件的高度
-     * @param radius
-     * 圆角半径大小
-     * @return
-     * 结果图片
+     * get a round corner image
      */
     private fun roundBottomBitmapByShader(
         bitmap: Bitmap?,
@@ -244,7 +233,7 @@ class MagicTabLayout @JvmOverloads constructor(
         val newBt: Bitmap =
             Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
 
-        // 初始化目标bitmap
+        // create a new bitmap
         val targetBitmap = Bitmap.createBitmap(outWidth, outHeight, Bitmap.Config.ARGB_8888)
 
         val canvas = Canvas(targetBitmap)
@@ -255,13 +244,13 @@ class MagicTabLayout @JvmOverloads constructor(
 
         val rectF = RectF(0f, 0f, outWidth.toFloat(), outHeight.toFloat())
 
-        // 在画布上绘制圆角图
+        // draw round corner
         canvas.drawRoundRect(rectF, radius.toFloat(), radius.toFloat(), paint)
 
-        // 设置叠加模式
+        // set overlay mode
         paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
 
-        // 在画布上绘制原图片
+        // draw bitmap on canvas
         val ret = Rect(0, 0, outWidth, outHeight)
         canvas.drawBitmap(newBt, ret, ret, paint)
         paint.xfermode = null
@@ -275,7 +264,7 @@ class MagicTabLayout @JvmOverloads constructor(
     }
 
     /**
-     * 绘制标题文字
+     * draw titles
      */
     private fun drawTitles(canvas: Canvas, bgHeight: Float) {
         if (titles.isEmpty()) return

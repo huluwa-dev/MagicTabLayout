@@ -18,6 +18,10 @@ android {
         consumerProguardFiles 'consumer-rules.pro'
     }
 
+    compileOptions {
+        kotlinOptions.freeCompilerArgs += ['-module-name', "com.huluwa.lib.MagicTabLayout"]
+    }
+
     buildTypes {
         release {
             minifyEnabled false
