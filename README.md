@@ -1,6 +1,13 @@
 # MagicTabLayout
 This is a magic TabLayout.
 
+## How to use it
+Add this line to build.gradle.
+```
+implementation 'com.huluwa.lib.magictablayout:MagicTabLayout:1.0.1'
+```
+
+And then use it like the code below.
 ```
 <com.huluwa.lib.magictablayout.MagicTabLayout
         android:id="@+id/magicLayout"
