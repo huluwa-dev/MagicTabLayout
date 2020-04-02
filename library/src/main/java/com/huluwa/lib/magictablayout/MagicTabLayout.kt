@@ -44,6 +44,13 @@ class MagicTabLayout @JvmOverloads constructor(
     private var selectBitmap: Bitmap? = null
     private var roundedBitmap: Bitmap? = null
 
+    // gap
+    private var gapSize = 2.dp
+
+    // radius
+    private var topRadius = 0
+    private var bottomRadius = 0
+
     // titles
     private val titles = arrayListOf<Title>()
     private var selectedIndex = 0
@@ -84,6 +91,9 @@ class MagicTabLayout @JvmOverloads constructor(
         normalTextSize = ta.getDimensionPixelSize(R.styleable.MagicTabLayout_normalTextSize, 14.sp)
         selectedTextSize =
             ta.getDimensionPixelSize(R.styleable.MagicTabLayout_selectedTextSize, 14.sp)
+        gapSize = ta.getDimensionPixelSize(R.styleable.MagicTabLayout_gapSize, 2.dp)
+        topRadius = ta.getDimensionPixelSize(R.styleable.MagicTabLayout_topRadius, 5.dp)
+        bottomRadius = ta.getDimensionPixelSize(R.styleable.MagicTabLayout_bottomRadius, 10.dp)
 
         ta.recycle()
 
@@ -134,7 +144,7 @@ class MagicTabLayout @JvmOverloads constructor(
             MeasureSpec.AT_MOST -> {
                 TypedValue.applyDimension(
                     TypedValue.COMPLEX_UNIT_DIP,
-                    50f,
+                    40f,
                     Resources.getSystem().displayMetrics
                 ).toInt()
             }
@@ -148,10 +158,11 @@ class MagicTabLayout @JvmOverloads constructor(
         val canvasWidth = width
         val canvasHeight = height
 
-        bgHeight = measuredHeight.toFloat() - 8.dp
-        lineLength = (measuredWidth.toFloat() - bgHeight - measuredHeight) / titles.size
-        selectTitleWidth = bgHeight + measuredHeight + lineLength
-        normalTitleWidth = (measuredWidth - selectTitleWidth) / (titles.size - 1)
+        val validWidth = measuredWidth.toFloat() - paddingStart - paddingEnd
+        bgHeight = measuredHeight.toFloat() - 6.dp
+        lineLength = (validWidth - bgHeight - measuredHeight) / titles.size
+        selectTitleWidth = topRadius * 2 + bottomRadius * 2 + lineLength
+        normalTitleWidth = (validWidth - selectTitleWidth) / (titles.size - 1)
 
         val layerId =
             canvas.saveLayerCompat(0f, 0f, canvasWidth.toFloat(), canvasHeight.toFloat(), null)
@@ -162,46 +173,52 @@ class MagicTabLayout @JvmOverloads constructor(
         // draw holo part
         paint.xfermode = porterDuffXfermode
 
-        calculateHolePath(canvasHeight.toFloat(), bgHeight, lineLength)
+        calculateHolePath(bgHeight, lineLength)
         paint.color = Color.YELLOW
         canvas.drawPath(targetPath, paint)
         paint.xfermode = null
         canvas.restoreToCount(layerId)
 
-        drawSelected(canvas, bgHeight.toInt(), (canvasHeight + lineLength).toInt(), canvasHeight)
+        drawSelected(canvas, bgHeight.toInt(), (topRadius * 2 + lineLength).toInt(), canvasHeight)
 
-        drawTitles(canvas, bgHeight)
+        drawTitles(canvas)
     }
 
     /**
      * calculate the path of the holo part
      */
-    private fun calculateHolePath(canvasHeight: Float, pathHeight: Float, lineLength: Float) {
+    private fun calculateHolePath(bgHeight: Float, lineLength: Float) {
         targetPath.reset()
-        targetPath.moveTo(targetXOffset, pathHeight)
+        targetPath.moveTo(targetXOffset, bgHeight)
+        val startX = targetXOffset + paddingStart
         var rectFTo =
-            RectF(targetXOffset - pathHeight / 2, 0f, targetXOffset + pathHeight / 2, pathHeight)
+            RectF(
+                startX - bottomRadius,
+                bgHeight - bottomRadius * 2,
+                startX + bottomRadius,
+                bgHeight
+            )
         targetPath.arcTo(rectFTo, 90f, -90f)
         rectFTo = RectF(
-            targetXOffset + pathHeight / 2,
+            startX + bottomRadius,
             0f,
-            targetXOffset + pathHeight / 2 + canvasHeight,
-            canvasHeight
+            startX + bottomRadius + topRadius * 2,
+            topRadius * 2f
         )
         targetPath.arcTo(rectFTo, 180f, 90f)
-        targetPath.lineTo(targetXOffset + pathHeight + lineLength, 0f)
+        targetPath.lineTo(startX + topRadius + bottomRadius + lineLength, 0f)
         rectFTo = RectF(
-            targetXOffset + pathHeight / 2 + lineLength,
+            startX + bottomRadius + lineLength,
             0f,
-            targetXOffset + pathHeight / 2 + lineLength + canvasHeight,
-            canvasHeight
+            startX + bottomRadius + lineLength + topRadius * 2,
+            topRadius * 2f
         )
         targetPath.arcTo(rectFTo, 270f, 90f)
         rectFTo = RectF(
-            targetXOffset + pathHeight / 2 + canvasHeight + lineLength,
-            0f,
-            targetXOffset + pathHeight / 2 + canvasHeight + lineLength + pathHeight,
-            pathHeight
+            startX + bottomRadius + lineLength + topRadius * 2,
+            bgHeight - bottomRadius * 2,
+            startX + bottomRadius * 3 + lineLength + topRadius * 2,
+            bgHeight
         )
         targetPath.arcTo(rectFTo, 180f, -90f)
         targetPath.close()
@@ -210,23 +227,23 @@ class MagicTabLayout @JvmOverloads constructor(
     // draw image of the selected part
     private fun drawSelected(canvas: Canvas, pathHeight: Int, outWidth: Int, outHeight: Int) {
         selectBitmap?.let {
-            val margin = 2.dp
             if (roundedBitmap == null) {
                 roundedBitmap = roundBottomBitmapByShader(
                     it,
-                    outWidth - margin * 2,
-                    outHeight - margin,
-                    (outHeight - margin) / 2
+                    outWidth - gapSize * 2,
+                    outHeight - gapSize,
+                    topRadius
                 )
             }
             roundedBitmap?.run {
+                val startX = targetXOffset + paddingStart
                 canvas.drawBitmap(
                     this,
                     null,
                     RectF(
-                        targetXOffset + pathHeight / 2 + margin,
-                        margin.toFloat(),
-                        targetXOffset + pathHeight / 2 + outWidth - margin,
+                        startX + bottomRadius + gapSize,
+                        gapSize.toFloat(),
+                        startX + bottomRadius + outWidth - gapSize,
                         outHeight.toFloat()
                     ),
                     Paint()
@@ -288,9 +305,10 @@ class MagicTabLayout @JvmOverloads constructor(
     /**
      * draw titles
      */
-    private fun drawTitles(canvas: Canvas, bgHeight: Float) {
+    private fun drawTitles(canvas: Canvas) {
         if (titles.isEmpty()) return
-        val normalTitleWidth = (canvas.width - selectTitleWidth).toInt() / (titles.size - 1)
+        val normalTitleWidth =
+            (canvas.width - paddingStart - paddingEnd - selectTitleWidth).toInt() / (titles.size - 1)
         for (i in 0 until titles.size) {
             val paint = Paint()
             paint.style = Paint.Style.FILL
@@ -304,16 +322,21 @@ class MagicTabLayout @JvmOverloads constructor(
                 i < selectedIndex -> {
                     paint.color = normalTextColor
                     val rect =
-                        Rect(normalTitleWidth * i, 0, normalTitleWidth * (i + 1), canvas.height)
+                        Rect(
+                            paddingStart + normalTitleWidth * i,
+                            0,
+                            paddingStart + normalTitleWidth * (i + 1),
+                            canvas.height
+                        )
                     val baseLineY = rect.centerY() - top / 2 - bottom / 2 //基线中间点的y轴计算公式
                     canvas.drawText(titles[i].title, rect.centerX().toFloat(), baseLineY, paint)
                 }
                 i > selectedIndex -> {
                     paint.color = normalTextColor
                     val rect = Rect(
-                        normalTitleWidth * (i - 1) + selectTitleWidth.toInt(),
+                        paddingStart + normalTitleWidth * (i - 1) + selectTitleWidth.toInt(),
                         0,
-                        normalTitleWidth * i + selectTitleWidth.toInt(),
+                        paddingStart + normalTitleWidth * i + selectTitleWidth.toInt(),
                         canvas.height
                     )
                     val baseLineY = rect.centerY() - top / 2 - bottom / 2 //基线中间点的y轴计算公式
@@ -323,9 +346,9 @@ class MagicTabLayout @JvmOverloads constructor(
                     // draw selected text
                     paint.textSize = selectedTextSize.toFloat()
                     val rect = RectF(
-                        normalTitleWidth * i.toFloat(),
+                        paddingStart + normalTitleWidth * i.toFloat(),
                         0f,
-                        normalTitleWidth * i + selectTitleWidth,
+                        paddingStart + normalTitleWidth * i + selectTitleWidth,
                         canvas.height.toFloat()
                     )
                     canvas.saveLayerCompat(rect, paint)

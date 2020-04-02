@@ -10,5 +10,8 @@
         <attr name="animateSelected" format="boolean" />
         <attr name="normalTextSize" format="dimension" />
         <attr name="selectedTextSize" format="dimension" />
+        <attr name="gapSize" format="dimension" />
+        <attr name="topRadius" format="dimension" />
+        <attr name="bottomRadius" format="dimension" />
     </declare-styleable>
 </resources>
