@@ -347,14 +347,15 @@ class MagicTabLayout @JvmOverloads constructor(
                     paint.textSize = selectedTextSize.toFloat()
                     val rect = RectF(
                         paddingStart + normalTitleWidth * i.toFloat(),
-                        0f,
+                        gapSize.toFloat(),
                         paddingStart + normalTitleWidth * i + selectTitleWidth,
                         canvas.height.toFloat()
                     )
                     canvas.saveLayerCompat(rect, paint)
                     canvas.scale(titleScale, titleScale, rect.centerX(), rect.centerY())
                     paint.color = selectTextColor
-                    val baseLineY = canvas.height / 2 - top / 2 - bottom / 2 //基线中间点的y轴计算公式
+                    val baseLineY =
+                        (canvas.height + gapSize) / 2 - top / 2 - bottom / 2 //基线中间点的y轴计算公式
                     var bitmapWidth = 0
                     paint.textAlign = Paint.Align.LEFT
                     val bounds = Rect()
