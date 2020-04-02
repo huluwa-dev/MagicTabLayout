@@ -10,12 +10,17 @@
         android:id="@+id/magicLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        app:animateSelected="true"
         app:bgColor="@color/colorAccent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:normalTextColor="@color/white"
+        app:normalTextSize="14sp"
         app:selectDrawable="@drawable/huluwa"
-        app:selectTextColor="@color/red" />
+        app:selectTextColor="@color/red"
+        app:selectedTextSize="15sp"
+        app:titleIconDrawable="@drawable/icon"
+        app:titleIconPadding="4dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

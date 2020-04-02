@@ -5,14 +5,15 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.*
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
-import androidx.core.graphics.drawable.toBitmap
-import androidx.core.view.GestureDetectorCompat
+
 
 class MagicTabLayout @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -24,18 +25,21 @@ class MagicTabLayout @JvmOverloads constructor(
 
     private val paint: Paint by lazy {
         Paint().apply {
-            textSize = 14.dp.toFloat()
+            textSize = 14.sp.toFloat()
         }
     }
     private val porterDuffXfermode: PorterDuffXfermode by lazy {
         PorterDuffXfermode(PorterDuff.Mode.CLEAR)
     }
+
     // path of the holo part
     private val targetPath: Path by lazy {
         Path()
     }
+
     // start x of the selected tab
     private var targetXOffset = 0f
+
     // bitmap of the selected tab
     private var selectBitmap: Bitmap? = null
     private var roundedBitmap: Bitmap? = null
@@ -47,12 +51,21 @@ class MagicTabLayout @JvmOverloads constructor(
     private var selectTitleWidth = 0f // selected item width
     private var bgHeight = 0f // background height
     private var lineLength = 0f // line length of selected item
+    private var normalTextSize = 0
+    private var selectedTextSize = 0
+
+    // icon of title
+    private var titleIconBitmap: Bitmap? = null
+    private var titleScale = 1.0f // scale of title
+    private var titleIconPadding = 0
 
     // Animation
     private var xOffsetAnimator: ValueAnimator? = null
+    private var animateSelected = false
+    private var selectedTextScaleAnimator: ValueAnimator? = null
 
     // Touch
-    private var detector: GestureDetectorCompat? = null
+    private var detector: GestureDetector? = null
 
     // callback
     var onSelectChangeListener: ((index: Int) -> Unit)? = null
@@ -62,12 +75,19 @@ class MagicTabLayout @JvmOverloads constructor(
 
         bgColor = ta.getColor(R.styleable.MagicTabLayout_bgColor, Color.WHITE)
         selectBitmap = ta.getDrawable(R.styleable.MagicTabLayout_selectDrawable)?.toBitmap()
+        titleIconBitmap = ta.getDrawable(R.styleable.MagicTabLayout_titleIconDrawable)?.toBitmap()
         normalTextColor = ta.getColor(R.styleable.MagicTabLayout_normalTextColor, Color.GRAY)
         selectTextColor = ta.getColor(R.styleable.MagicTabLayout_selectTextColor, Color.WHITE)
+        animateSelected = ta.getBoolean(R.styleable.MagicTabLayout_animateSelected, false)
+        titleIconPadding =
+            ta.getDimensionPixelSize(R.styleable.MagicTabLayout_titleIconPadding, 2.dp)
+        normalTextSize = ta.getDimensionPixelSize(R.styleable.MagicTabLayout_normalTextSize, 14.sp)
+        selectedTextSize =
+            ta.getDimensionPixelSize(R.styleable.MagicTabLayout_selectedTextSize, 14.sp)
 
         ta.recycle()
 
-        detector = GestureDetectorCompat(context, this)
+        detector = GestureDetector(context, this)
     }
 
     /**
@@ -85,8 +105,20 @@ class MagicTabLayout @JvmOverloads constructor(
                 targetXOffset = it.animatedValue as Float
                 invalidate()
             }
+            start()
         }
-        xOffsetAnimator?.start()
+        if (animateSelected) {
+            selectedTextScaleAnimator?.cancel()
+            titleScale = 0f
+            selectedTextScaleAnimator = ValueAnimator.ofFloat(titleScale, 0f, 1f).apply {
+                duration = 500
+                addUpdateListener {
+                    titleScale = it.animatedValue as Float
+                    invalidate()
+                }
+                start()
+            }
+        }
         onSelectChangeListener?.invoke(index)
     }
 
@@ -121,18 +153,8 @@ class MagicTabLayout @JvmOverloads constructor(
         selectTitleWidth = bgHeight + measuredHeight + lineLength
         normalTitleWidth = (measuredWidth - selectTitleWidth) / (titles.size - 1)
 
-        val layerId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            canvas.saveLayer(0f, 0f, canvasWidth.toFloat(), canvasHeight.toFloat(), null)
-        } else {
-            canvas.saveLayer(
-                0f,
-                0f,
-                canvasWidth.toFloat(),
-                canvasHeight.toFloat(),
-                null,
-                Canvas.ALL_SAVE_FLAG
-            )
-        }
+        val layerId =
+            canvas.saveLayerCompat(0f, 0f, canvasWidth.toFloat(), canvasHeight.toFloat(), null)
         // draw background
         paint.color = bgColor
         canvas.drawRect(0f, 0f, canvasWidth.toFloat(), bgHeight, paint)
@@ -273,11 +295,11 @@ class MagicTabLayout @JvmOverloads constructor(
             val paint = Paint()
             paint.style = Paint.Style.FILL
             paint.textAlign = Paint.Align.CENTER
-            paint.textSize = 14.sp.toFloat()
+            paint.textSize = normalTextSize.toFloat()
 
             val fontMetrics: Paint.FontMetrics = paint.fontMetrics
-            val top = fontMetrics.top //为基线到字体上边框的距离,即上图中的top
-            val bottom = fontMetrics.bottom //为基线到字体下边框的距离,即上图中的bottom
+            val top = fontMetrics.top //为基线到字体上边框的距离
+            val bottom = fontMetrics.bottom //为基线到字体下边框的距离
             when {
                 i < selectedIndex -> {
                     paint.color = normalTextColor
@@ -298,15 +320,41 @@ class MagicTabLayout @JvmOverloads constructor(
                     canvas.drawText(titles[i].title, rect.centerX().toFloat(), baseLineY, paint)
                 }
                 else -> {
-                    paint.color = selectTextColor
-                    val rect = Rect(
-                        normalTitleWidth * i,
-                        0,
-                        normalTitleWidth * i + selectTitleWidth.toInt(),
-                        canvas.height
+                    // draw selected text
+                    paint.textSize = selectedTextSize.toFloat()
+                    val rect = RectF(
+                        normalTitleWidth * i.toFloat(),
+                        0f,
+                        normalTitleWidth * i + selectTitleWidth,
+                        canvas.height.toFloat()
                     )
-                    val baseLineY = rect.centerY() - top / 2 - bottom / 2 //基线中间点的y轴计算公式
-                    canvas.drawText(titles[i].fullTitle, rect.centerX().toFloat(), baseLineY, paint)
+                    canvas.saveLayerCompat(rect, paint)
+                    canvas.scale(titleScale, titleScale, rect.centerX(), rect.centerY())
+                    paint.color = selectTextColor
+                    val baseLineY = canvas.height / 2 - top / 2 - bottom / 2 //基线中间点的y轴计算公式
+                    var bitmapWidth = 0
+                    paint.textAlign = Paint.Align.LEFT
+                    val bounds = Rect()
+                    paint.getTextBounds(titles[i].fullTitle, 0, titles[i].fullTitle.length, bounds)
+                    titleIconBitmap?.let {
+                        bitmapWidth = it.width
+                    }
+                    val widthOfIconAndText = bitmapWidth + titleIconPadding + bounds.width()
+                    titleIconBitmap?.let {
+                        canvas.drawBitmap(
+                            it,
+                            rect.centerX() - widthOfIconAndText / 2,
+                            rect.centerY() - it.height / 2f,
+                            paint
+                        )
+                    }
+                    canvas.drawText(
+                        titles[i].fullTitle,
+                        rect.centerX() - widthOfIconAndText / 2f + bitmapWidth + titleIconPadding,
+                        baseLineY,
+                        paint
+                    )
+                    canvas.restore()
                 }
             }
 
@@ -357,6 +405,64 @@ class MagicTabLayout @JvmOverloads constructor(
     }
 
     override fun onLongPress(e: MotionEvent?) {
+    }
+
+    private fun Canvas.saveLayerCompat(
+        left: Float,
+        top: Float,
+        right: Float,
+        bottom: Float,
+        paint: Paint?
+    ): Int {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            saveLayer(left, top, right, bottom, paint)
+        } else {
+            saveLayer(
+                left,
+                top,
+                right,
+                bottom,
+                paint,
+                Canvas.ALL_SAVE_FLAG
+            )
+        }
+    }
+
+    private fun Canvas.saveLayerCompat(bounds: RectF?, paint: Paint?): Int {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            saveLayer(bounds, paint)
+        } else {
+            saveLayer(bounds, paint, Canvas.ALL_SAVE_FLAG)
+        }
+    }
+
+    private fun Drawable.toBitmap(
+        width: Int = intrinsicWidth,
+        height: Int = intrinsicHeight,
+        config: Bitmap.Config? = null
+    ): Bitmap {
+        if (this is BitmapDrawable) {
+            if (config == null || bitmap.config == config) {
+                // Fast-path to return original. Bitmap.createScaledBitmap will do this check, but it
+                // involves allocation and two jumps into native code so we perform the check ourselves.
+                if (width == intrinsicWidth && height == intrinsicHeight) {
+                    return bitmap
+                }
+                return Bitmap.createScaledBitmap(bitmap, width, height, true)
+            }
+        }
+
+        // 创建bitmap
+        val bitmap = Bitmap.createBitmap(
+            width,
+            height,
+            if (!isOpaque) Bitmap.Config.ARGB_8888 else Bitmap.Config.RGB_565
+        )
+        setBounds(0, 0, width, height)
+        // 将drawable 内容画到画布中
+        draw(Canvas(bitmap))
+        setBounds(bounds.left, bounds.top, bounds.right, bounds.bottom)
+        return bitmap
     }
 }
 

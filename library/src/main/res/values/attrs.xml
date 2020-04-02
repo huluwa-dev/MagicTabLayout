@@ -5,5 +5,10 @@
         <attr name="selectDrawable" format="reference" />
         <attr name="normalTextColor" format="color" />
         <attr name="selectTextColor" format="color" />
+        <attr name="titleIconDrawable" format="reference" />
+        <attr name="titleIconPadding" format="dimension" />
+        <attr name="animateSelected" format="boolean" />
+        <attr name="normalTextSize" format="dimension" />
+        <attr name="selectedTextSize" format="dimension" />
     </declare-styleable>
 </resources>
