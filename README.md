@@ -1,9 +1,10 @@
 # MagicTabLayout
 This is a magic TabLayout.
 
+```
 <com.huluwa.lib.magictablayout.MagicTabLayout
         android:id="@+id/magicLayout"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:paddingHorizontal="5dp"
         app:animateSelected="true"
@@ -21,5 +22,6 @@ This is a magic TabLayout.
         app:titleIconDrawable="@drawable/icon"
         app:titleIconPadding="4dp"
         app:topRadius="10dp" />
+```
 
 ![image](https://github.com/huluwa-dev/MagicTabLayout/blob/master/preview.gif)
