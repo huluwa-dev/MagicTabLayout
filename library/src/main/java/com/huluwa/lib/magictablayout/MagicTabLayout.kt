@@ -70,6 +70,8 @@ class MagicTabLayout @JvmOverloads constructor(
     private var xOffsetAnimator: ValueAnimator? = null
     private var animateSelected = false
     private var selectedTextScaleAnimator: ValueAnimator? = null
+    var translateAnimDuration = 300L
+    var scaleAnimDuration = 500L
 
     // Touch
     private var detector: GestureDetector? = null
@@ -110,7 +112,7 @@ class MagicTabLayout @JvmOverloads constructor(
         }
         xOffsetAnimator?.cancel()
         xOffsetAnimator = ValueAnimator.ofFloat(targetXOffset, normalTitleWidth * index).apply {
-            duration = 300
+            duration = translateAnimDuration
             addUpdateListener {
                 targetXOffset = it.animatedValue as Float
                 invalidate()
@@ -121,7 +123,7 @@ class MagicTabLayout @JvmOverloads constructor(
             selectedTextScaleAnimator?.cancel()
             titleScale = 0f
             selectedTextScaleAnimator = ValueAnimator.ofFloat(titleScale, 0f, 1f).apply {
-                duration = 500
+                duration = scaleAnimDuration
                 addUpdateListener {
                     titleScale = it.animatedValue as Float
                     invalidate()
