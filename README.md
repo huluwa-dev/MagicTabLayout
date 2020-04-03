@@ -11,15 +11,13 @@ And then use it like the code below.
 ```
 <com.huluwa.lib.magictablayout.MagicTabLayout
         android:id="@+id/magicLayout"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="5dp"
         app:animateSelected="true"
         app:bgColor="@color/colorAccent"
         app:bottomRadius="10dp"
         app:gapSize="4dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:normalTextColor="@color/white"
         app:normalTextSize="13sp"
