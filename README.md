@@ -4,7 +4,7 @@ This is a magic TabLayout.
 ## How to use it
 Add this line to build.gradle.
 ```
-implementation 'com.huluwa.lib.magictablayout:MagicTabLayout:1.1.0'
+implementation 'com.huluwa.lib.magictablayout:MagicTabLayout:1.1.1'
 ```
 
 And then use it like the code below.
