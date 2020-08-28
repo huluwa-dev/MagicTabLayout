@@ -20,12 +20,14 @@ class MagicTabLayout @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr), GestureDetector.OnGestureListener {
 
     private var bgColor: Int = 0xFFFFFF
+    private var bgImage: Bitmap? = null
     private var normalTextColor: Int = 0x666666
     private var selectTextColor: Int = 0xFFFFFF
 
     private val paint: Paint by lazy {
         Paint().apply {
             textSize = 14.sp.toFloat()
+            isAntiAlias = true
         }
     }
     private val porterDuffXfermode: PorterDuffXfermode by lazy {
@@ -36,6 +38,7 @@ class MagicTabLayout @JvmOverloads constructor(
     private val targetPath: Path by lazy {
         Path()
     }
+    private var holoColor: Int = Color.TRANSPARENT
 
     // start x of the selected tab
     private var targetXOffset = 0f
@@ -85,7 +88,9 @@ class MagicTabLayout @JvmOverloads constructor(
     init {
         val ta = context.obtainStyledAttributes(attrs, R.styleable.MagicTabLayout)
 
-        bgColor = ta.getColor(R.styleable.MagicTabLayout_bgColor, Color.WHITE)
+        bgColor = ta.getColor(R.styleable.MagicTabLayout_bgColor, Color.TRANSPARENT)
+        holoColor = ta.getColor(R.styleable.MagicTabLayout_holoColor, Color.TRANSPARENT)
+        bgImage = ta.getDrawable(R.styleable.MagicTabLayout_bgImage)?.toBitmap()
         selectBitmap = ta.getDrawable(R.styleable.MagicTabLayout_selectDrawable)?.toBitmap()
         titleIconBitmap = ta.getDrawable(R.styleable.MagicTabLayout_titleIconDrawable)?.toBitmap()
         normalTextColor = ta.getColor(R.styleable.MagicTabLayout_normalTextColor, Color.GRAY)
@@ -173,16 +178,25 @@ class MagicTabLayout @JvmOverloads constructor(
         val layerId =
             canvas.saveLayerCompat(0f, 0f, canvasWidth.toFloat(), canvasHeight.toFloat(), null)
         // draw background
-        paint.color = bgColor
-        canvas.drawRect(0f, 0f, canvasWidth.toFloat(), bgHeight, paint)
+        if (bgColor != Color.TRANSPARENT) {
+            paint.color = bgColor
+            canvas.drawRect(0f, 0f, canvasWidth.toFloat(), bgHeight, paint)
+        }
+        drawBgImage(canvas, canvasWidth.toFloat())
         if (titles.size == 0) return
         // draw holo part
-        paint.xfermode = porterDuffXfermode
-
+        if (holoColor == Color.TRANSPARENT) {
+            paint.xfermode = porterDuffXfermode
+        }
         calculateHolePath(bgHeight, lineLength)
-        paint.color = Color.YELLOW
+        if (holoColor != Color.TRANSPARENT) {
+            paint.color = holoColor
+            paint.style = Paint.Style.FILL
+        }
         canvas.drawPath(targetPath, paint)
-        paint.xfermode = null
+        if (holoColor == Color.TRANSPARENT) {
+            paint.xfermode = null
+        }
         canvas.restoreToCount(layerId)
 
         drawSelected(canvas, bgHeight.toInt(), (topRadius * 2 + lineLength).toInt(), canvasHeight)
@@ -228,6 +242,12 @@ class MagicTabLayout @JvmOverloads constructor(
         )
         targetPath.arcTo(rectFTo, 180f, -90f)
         targetPath.close()
+    }
+
+    private fun drawBgImage(canvas: Canvas, width: Float) {
+        bgImage?.run {
+            canvas.drawBitmap(this, null, RectF(0f, 0f, width, bgHeight), Paint())
+        }
     }
 
     // draw image of the selected part

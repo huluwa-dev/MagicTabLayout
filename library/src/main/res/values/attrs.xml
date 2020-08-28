@@ -2,6 +2,7 @@
 <resources>
     <declare-styleable name="MagicTabLayout">
         <attr name="bgColor" format="color" />
+        <attr name="bgImage" format="reference" />
         <attr name="selectDrawable" format="reference" />
         <attr name="normalTextColor" format="color" />
         <attr name="selectTextColor" format="color" />
@@ -14,5 +15,6 @@
         <attr name="topRadius" format="dimension" />
         <attr name="bottomRadius" format="dimension" />
         <attr name="bottomSpace" format="dimension" />
+        <attr name="holoColor" format="color" />
     </declare-styleable>
 </resources>
