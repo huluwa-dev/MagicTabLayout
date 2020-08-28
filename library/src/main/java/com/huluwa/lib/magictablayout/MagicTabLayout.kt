@@ -44,6 +44,9 @@ class MagicTabLayout @JvmOverloads constructor(
     private var selectBitmap: Bitmap? = null
     private var roundedBitmap: Bitmap? = null
 
+    // bottom space
+    private var bottomSpace = 0
+
     // gap
     private var gapSize = 2.dp
 
@@ -96,6 +99,7 @@ class MagicTabLayout @JvmOverloads constructor(
         gapSize = ta.getDimensionPixelSize(R.styleable.MagicTabLayout_gapSize, 2.dp)
         topRadius = ta.getDimensionPixelSize(R.styleable.MagicTabLayout_topRadius, 5.dp)
         bottomRadius = ta.getDimensionPixelSize(R.styleable.MagicTabLayout_bottomRadius, 10.dp)
+        bottomSpace = ta.getDimensionPixelSize(R.styleable.MagicTabLayout_bottomSpace, 6.dp)
 
         ta.recycle()
 
@@ -161,7 +165,7 @@ class MagicTabLayout @JvmOverloads constructor(
         val canvasHeight = height
 
         val validWidth = measuredWidth.toFloat() - paddingStart - paddingEnd
-        bgHeight = measuredHeight.toFloat() - 6.dp
+        bgHeight = measuredHeight.toFloat() - bottomSpace
         lineLength = (validWidth - bgHeight - measuredHeight) / titles.size
         selectTitleWidth = topRadius * 2 + bottomRadius * 2 + lineLength
         normalTitleWidth = (validWidth - selectTitleWidth) / (titles.size - 1)
@@ -234,7 +238,7 @@ class MagicTabLayout @JvmOverloads constructor(
                     it,
                     outWidth - gapSize * 2,
                     outHeight - gapSize,
-                    topRadius
+                    topRadius - gapSize
                 )
             }
             roundedBitmap?.run {

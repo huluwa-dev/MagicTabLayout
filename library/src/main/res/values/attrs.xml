@@ -13,5 +13,6 @@
         <attr name="gapSize" format="dimension" />
         <attr name="topRadius" format="dimension" />
         <attr name="bottomRadius" format="dimension" />
+        <attr name="bottomSpace" format="dimension" />
     </declare-styleable>
 </resources>
