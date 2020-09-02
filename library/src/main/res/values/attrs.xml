@@ -16,5 +16,11 @@
         <attr name="bottomRadius" format="dimension" />
         <attr name="bottomSpace" format="dimension" />
         <attr name="holoColor" format="color" />
+        <attr name="textStyle">
+            <flag name="normal" value="0" />
+            <flag name="bold" value="1" />
+            <flag name="italic" value="2" />
+        </attr>
+
     </declare-styleable>
 </resources>

@@ -19,10 +19,11 @@ class MagicTabLayout @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr), GestureDetector.OnGestureListener {
 
-    private var bgColor: Int = 0xFFFFFF
+    private var bgColor: Int = Color.TRANSPARENT
     private var bgImage: Bitmap? = null
     private var normalTextColor: Int = 0x666666
     private var selectTextColor: Int = 0xFFFFFF
+    private var textStyle: Int = 0
 
     private val paint: Paint by lazy {
         Paint().apply {
@@ -105,6 +106,7 @@ class MagicTabLayout @JvmOverloads constructor(
         topRadius = ta.getDimensionPixelSize(R.styleable.MagicTabLayout_topRadius, 5.dp)
         bottomRadius = ta.getDimensionPixelSize(R.styleable.MagicTabLayout_bottomRadius, 10.dp)
         bottomSpace = ta.getDimensionPixelSize(R.styleable.MagicTabLayout_bottomSpace, 6.dp)
+        textStyle = ta.getInt(R.styleable.MagicTabLayout_textStyle, 0)
 
         ta.recycle()
 
@@ -171,9 +173,9 @@ class MagicTabLayout @JvmOverloads constructor(
 
         val validWidth = measuredWidth.toFloat() - paddingStart - paddingEnd
         bgHeight = measuredHeight.toFloat() - bottomSpace
-        lineLength = (validWidth - bgHeight - measuredHeight) / titles.size
+        lineLength = (validWidth - (topRadius * 2 + bottomRadius * 2) * titles.size) / titles.size
         selectTitleWidth = topRadius * 2 + bottomRadius * 2 + lineLength
-        normalTitleWidth = (validWidth - selectTitleWidth) / (titles.size - 1)
+        normalTitleWidth = if(titles.size <= 1) 0f else (validWidth - selectTitleWidth) / (titles.size - 1)
 
         val layerId =
             canvas.saveLayerCompat(0f, 0f, canvasWidth.toFloat(), canvasHeight.toFloat(), null)
@@ -333,13 +335,28 @@ class MagicTabLayout @JvmOverloads constructor(
      */
     private fun drawTitles(canvas: Canvas) {
         if (titles.isEmpty()) return
-        val normalTitleWidth =
+        val normalTitleWidth = if (titles.size == 1) {
+            0
+        } else {
             (canvas.width - paddingStart - paddingEnd - selectTitleWidth).toInt() / (titles.size - 1)
+        }
         for (i in 0 until titles.size) {
             val paint = Paint()
             paint.style = Paint.Style.FILL
             paint.textAlign = Paint.Align.CENTER
             paint.textSize = normalTextSize.toFloat()
+            when (textStyle) {
+                1 -> {
+                    paint.typeface = Typeface.DEFAULT_BOLD
+                }
+                2 -> {
+                    paint.textSkewX = -0.25f
+                }
+                else -> {
+                    paint.typeface = Typeface.DEFAULT
+                    paint.textSkewX = 0f
+                }
+            }
 
             val fontMetrics: Paint.FontMetrics = paint.fontMetrics
             val top = fontMetrics.top //为基线到字体上边框的距离
@@ -519,4 +536,4 @@ class MagicTabLayout @JvmOverloads constructor(
 /**
  * class for each title
  */
-data class Title(val title: String, val fullTitle: String, val subTitle: String = "")
+data class Title(val title: String, val fullTitle: String = title, val subTitle: String = "")
