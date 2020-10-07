@@ -55,7 +55,7 @@ class MagicIndicator @JvmOverloads constructor(
         val ta = context.obtainStyledAttributes(attrs, R.styleable.MagicIndicator)
 
         normalColor =
-            ta.getColor(R.styleable.MagicIndicator_normalColor, Color.argb(100, 255, 255, 255))
+            ta.getColor(R.styleable.MagicIndicator_normalColor, Color.argb(50, 255, 255, 255))
         cursorColor = ta.getColor(R.styleable.MagicIndicator_cursorColor, Color.WHITE)
         gapSize = ta.getDimensionPixelSize(R.styleable.MagicIndicator_gapSize, 8.dp)
         normalWidth = ta.getDimensionPixelSize(R.styleable.MagicIndicator_normalWidth, 20.dp)
