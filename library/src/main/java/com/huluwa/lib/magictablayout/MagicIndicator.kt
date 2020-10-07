@@ -144,10 +144,6 @@ class MagicIndicator @JvmOverloads constructor(
         positionOffset: Float,
         positionOffsetPixels: Int
     ) {
-        Log.d(
-            "MagicIndicator",
-            "position:$position, positionOffset:$positionOffset, positionOffsetPixels:$positionOffsetPixels"
-        )
         this.position = position
         this.positionOffset = positionOffset
         if (positionOffset == 0f) {
