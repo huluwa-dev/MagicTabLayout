@@ -42,9 +42,6 @@ class MagicIndicator @JvmOverloads constructor(
     // 未选中最左边的位置
     private var normalLeft = 0f
 
-    // 滑动时，需要滑动动画区域的宽度
-    private var widthToPercent = 0
-
     private val paint: Paint by lazy {
         Paint().apply {
             isAntiAlias = true
@@ -65,7 +62,6 @@ class MagicIndicator @JvmOverloads constructor(
         ta.recycle()
 
         normalItemsWidth = count * normalWidth + (count - 1) * gapSize
-        widthToPercent = normalWidth + gapSize
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
