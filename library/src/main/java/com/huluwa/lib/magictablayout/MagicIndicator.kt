@@ -24,8 +24,10 @@ class MagicIndicator @JvmOverloads constructor(
         set(value) {
             field = value
             normalItemsWidth = count * normalWidth + (count - 1) * gapSize
-            normalLeft = canvasWidth.toFloat() / 2 - normalItemsWidth / 2
-            invalidate()
+            post {
+                normalLeft = canvasWidth.toFloat() / 2 - normalItemsWidth / 2
+            }
+            postInvalidate()
         }
 
     // scroll

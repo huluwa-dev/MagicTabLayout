@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
                 { SampleFragment.newInstance("5") },
             )
         )
+        magicIndicator.count = 5
 
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageScrolled(
