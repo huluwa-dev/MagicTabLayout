@@ -20,8 +20,13 @@ class MagicIndicator @JvmOverloads constructor(
     private var cursorWidth = 0 // 游标宽度
     private var itemHeight = 0 // 高度
 
-    var count = 5 // 有多少项
-    private var currentPosition = 0
+    var count = 0 // 有多少项
+        set(value) {
+            field = value
+            normalItemsWidth = count * normalWidth + (count - 1) * gapSize
+            normalLeft = canvasWidth.toFloat() / 2 - normalItemsWidth / 2
+            invalidate()
+        }
 
     // scroll
     private var position = 0
@@ -105,28 +110,27 @@ class MagicIndicator @JvmOverloads constructor(
 
         val left: Float
         val right: Float
-        if (position >= currentPosition) { // 往右滑动
-            if (positionOffset <= 0.5) {
+
+        val result = calculateCurrentAndNextLeftRight()
+        if (positionOffset <= 0.5) {
+            if (position >= count - 1) {
                 left =
-                    normalLeft + normalWidth * position + gapSize * position - (cursorWidth - normalWidth) / 2
-                right = left + cursorWidth + widthToPercent * (positionOffset / 0.5f)
+                    result.currentLeft - positionOffset / 0.5f * (result.currentLeft - result.nextLeft)
+                right = result.currentRight
             } else {
-                left =
-                    normalLeft + normalWidth * position + gapSize * position - (cursorWidth - normalWidth) / 2 + widthToPercent * ((positionOffset - 0.5f) / 0.5f)
+                left = result.currentLeft
                 right =
-                    normalLeft + normalWidth * (position + 1) + gapSize * (position + 1) + cursorWidth - (cursorWidth - normalWidth) / 2
+                    result.currentRight + positionOffset / 0.5f * (result.nextRight - result.currentRight)
             }
-        } else { // 往左滑动
-            if (positionOffset <= 0.5) {
-                left =
-                    normalLeft + normalWidth * position + gapSize * position - (cursorWidth - normalWidth) / 2
+        } else {
+            if (position >= count - 1) {
+                left = result.nextLeft
                 right =
-                    left + normalWidth * 2 + gapSize + (cursorWidth - normalWidth) - ((0.5f - positionOffset) / 0.5f) * widthToPercent
+                    result.currentRight - (positionOffset - 0.5f) / 0.5f * (result.currentRight - result.nextRight)
             } else {
-                right =
-                    normalLeft + normalWidth * (position + 1) + gapSize * (position + 1) + cursorWidth - (cursorWidth - normalWidth) / 2
                 left =
-                    right - cursorWidth - widthToPercent + widthToPercent * ((positionOffset - 0.5f) / 0.5f)
+                    result.currentLeft + (positionOffset - 0.5f) / 0.5f * (result.nextLeft - result.currentLeft)
+                right = result.nextRight
             }
         }
 
@@ -139,16 +143,40 @@ class MagicIndicator @JvmOverloads constructor(
         )
     }
 
+    private fun calculateCurrentAndNextLeftRight(): CurrentAndNextLeftRight {
+        val currentLeft =
+            normalLeft + normalWidth * position + gapSize * position - (cursorWidth - normalWidth) / 2
+        val currentRight = currentLeft + cursorWidth
+        val nextLeft: Float
+        val nextRight: Float
+        nextLeft = if (position >= count - 1) {
+            normalLeft - (cursorWidth - normalWidth) / 2
+        } else {
+            currentLeft + normalWidth + gapSize
+        }
+        nextRight = nextLeft + cursorWidth
+
+        return CurrentAndNextLeftRight(currentLeft, currentRight, nextLeft, nextRight)
+    }
+
     fun onPageScrolled(
         position: Int,
         positionOffset: Float,
         positionOffsetPixels: Int
     ) {
+        Log.d(
+            "MagicIndicator",
+            "position:$position, positionOffset:$positionOffset, positionOffsetPixels:$positionOffsetPixels"
+        )
         this.position = position
         this.positionOffset = positionOffset
-        if (positionOffset == 0f) {
-            currentPosition = position
-        }
         invalidate()
     }
+
+    private data class CurrentAndNextLeftRight(
+        val currentLeft: Float,
+        val currentRight: Float,
+        val nextLeft: Float,
+        val nextRight: Float
+    )
 }
