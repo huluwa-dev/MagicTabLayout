@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <attr name="gapSize" format="dimension" />
     <declare-styleable name="MagicTabLayout">
         <attr name="bgColor" format="color" />
         <attr name="bgImage" format="reference" />
@@ -11,7 +12,7 @@
         <attr name="animateSelected" format="boolean" />
         <attr name="normalTextSize" format="dimension" />
         <attr name="selectedTextSize" format="dimension" />
-        <attr name="gapSize" format="dimension" />
+        <attr name="gapSize" />
         <attr name="topRadius" format="dimension" />
         <attr name="bottomRadius" format="dimension" />
         <attr name="bottomSpace" format="dimension" />
@@ -22,5 +23,14 @@
             <flag name="italic" value="2" />
         </attr>
 
+    </declare-styleable>
+
+    <declare-styleable name="MagicIndicator">
+        <attr name="normalColor" format="color" />
+        <attr name="cursorColor" format="color" />
+        <attr name="gapSize" />
+        <attr name="normalWidth" format="dimension" />
+        <attr name="cursorWidth" format="dimension" />
+        <attr name="itemHeight" format="dimension" />
     </declare-styleable>
 </resources>
